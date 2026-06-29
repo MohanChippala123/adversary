@@ -183,6 +183,79 @@ def steelman_stream():
                     headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
 
+# ── New analysis endpoints ────────────────────────────────────────────────────
+
+@app.post("/api/common-ground")
+def common_ground():
+    data = request.get_json(force=True) or {}
+    thesis     = (data.get("thesis")     or "").strip()
+    antithesis = (data.get("antithesis") or "").strip()
+    if not (thesis and antithesis):
+        return jsonify({"error": "Need both sides."}), 400
+    if not llm.available():
+        return jsonify({"error": "No LLM configured."}), 503
+    return jsonify({"common_ground": llm.get_common_ground(thesis, antithesis)})
+
+
+@app.post("/api/follow-up")
+def follow_up():
+    data = request.get_json(force=True) or {}
+    question   = (data.get("question")   or "").strip()
+    thesis     = (data.get("thesis")     or "").strip()
+    antithesis = (data.get("antithesis") or "").strip()
+    if not (question and thesis and antithesis):
+        return jsonify({"error": "Need question and both sides."}), 400
+    if not llm.available():
+        return jsonify({"error": "No LLM configured."}), 503
+    return jsonify({"questions": llm.get_follow_up(question, thesis, antithesis)})
+
+
+@app.post("/api/change-mind")
+def change_mind():
+    data = request.get_json(force=True) or {}
+    question   = (data.get("question")   or "").strip()
+    thesis     = (data.get("thesis")     or "").strip()
+    antithesis = (data.get("antithesis") or "").strip()
+    if not (question and thesis and antithesis):
+        return jsonify({"error": "Need question and both sides."}), 400
+    if not llm.available():
+        return jsonify({"error": "No LLM configured."}), 503
+    return jsonify(llm.get_change_mind(question, thesis, antithesis))
+
+
+@app.post("/api/conviction")
+def conviction():
+    data = request.get_json(force=True) or {}
+    thesis     = (data.get("thesis")     or "").strip()
+    antithesis = (data.get("antithesis") or "").strip()
+    if not (thesis and antithesis):
+        return jsonify({"error": "Need both sides."}), 400
+    if not llm.available():
+        return jsonify({"error": "No LLM configured."}), 503
+    return jsonify(llm.get_conviction(thesis, antithesis))
+
+
+@app.post("/api/drill/stream")
+def drill_stream():
+    """SSE: deep-dive on a specific paragraph. mode: challenge|expand|falsify."""
+    data = request.get_json(force=True) or {}
+    claim   = (data.get("claim")   or "").strip()
+    context = (data.get("context") or "").strip()
+    mode    = (data.get("mode")    or "challenge").strip()
+    if not claim:
+        def _err():
+            yield "data: " + json.dumps({"phase": "error", "error": "No claim."}) + "\n\n"
+        return Response(_err(), mimetype="text/event-stream")
+
+    def _gen():
+        for chunk in llm.stream_drill(claim, context, mode):
+            yield "data: " + json.dumps({"phase": "drill", "delta": chunk}) + "\n\n"
+        yield "data: " + json.dumps({"phase": "done"}) + "\n\n"
+
+    return Response(_gen(), mimetype="text/event-stream",
+                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
 # ── Challenge my view (non-streaming) ────────────────────────────────────────
 
 @app.post("/api/challenge")

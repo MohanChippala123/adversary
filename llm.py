@@ -325,3 +325,120 @@ def get_key_claims(text: str) -> list[str]:
         except Exception:
             pass
     return []
+
+
+# ── New feature prompts ───────────────────────────────────────────────────────
+
+_SYS_COMMON_GROUND = """\
+You are analyzing two opposing arguments. Identify what BOTH sides implicitly or
+explicitly agree on — the common ground that isn't being disputed.
+Often 80% of a debate is hidden common ground. Surface it.
+Return ONLY this JSON:
+{"common_ground": ["<1 sentence each, 3-5 items>"]}"""
+
+_SYS_FOLLOW_UP = """\
+You have read a debate. Generate the 5 most important Socratic follow-up questions —
+the questions this debate raises but doesn't answer, that a curious person should
+research next. Make each question sharp and specific, not generic.
+Return ONLY this JSON:
+{"questions": ["...", "...", "...", "...", "..."]}"""
+
+_SYS_CHANGE_MIND = """\
+For each side of the following debate, what SPECIFIC evidence or findings would a
+rational person need to see in order to change their position? Be concrete —
+not "more research" but specific measurements, cases, or observations.
+Return ONLY this JSON:
+{
+  "for_would_update": ["<condition 1>", "<condition 2>", "<condition 3>"],
+  "against_would_update": ["<condition 1>", "<condition 2>", "<condition 3>"]
+}"""
+
+_SYS_DRILL_CHALLENGE = """\
+You are deeply challenging ONE specific claim. Be surgical and specific —
+attack THIS claim's logic, evidence, or premises. 2-3 punchy paragraphs.
+Do not reference the broader debate."""
+
+_SYS_DRILL_EXPAND = """\
+Expand on ONE specific claim with more depth: additional evidence, mechanisms,
+case studies, and nuance that the original argument didn't have space for.
+2-3 paragraphs, concrete and specific."""
+
+_SYS_DRILL_FALSIFY = """\
+What would falsify this specific claim? Name the exact evidence or conditions
+under which this claim would be wrong. Be precise — not "if the evidence changes"
+but what specific data or findings would do it.
+2 paragraphs."""
+
+_SYS_CONVICTION = """\
+Given this debate, how convincing was each side? Return ONLY this JSON:
+{
+  "for_conviction": <0-10 integer>,
+  "against_conviction": <0-10 integer>,
+  "most_compelling_for": "<one sentence: the single strongest FOR argument>",
+  "most_compelling_against": "<one sentence: the single strongest AGAINST argument>",
+  "tipping_point": "<one sentence: what would tip the balance>"
+}"""
+
+
+# ── New public functions ──────────────────────────────────────────────────────
+
+def get_common_ground(thesis: str, antithesis: str) -> list[str]:
+    text = _call(_SYS_COMMON_GROUND,
+                 f"FOR:\n{thesis}\n\nAGAINST:\n{antithesis}", max_tokens=400)
+    s, e = text.find("{"), text.rfind("}") + 1
+    if s != -1 and e > s:
+        try:
+            return json.loads(text[s:e]).get("common_ground", [])
+        except Exception:
+            pass
+    return []
+
+
+def get_follow_up(question: str, thesis: str, antithesis: str) -> list[str]:
+    text = _call(_SYS_FOLLOW_UP,
+                 f"Question: {question}\nFOR:\n{thesis}\nAGAINST:\n{antithesis}",
+                 max_tokens=500)
+    s, e = text.find("{"), text.rfind("}") + 1
+    if s != -1 and e > s:
+        try:
+            return json.loads(text[s:e]).get("questions", [])
+        except Exception:
+            pass
+    return []
+
+
+def get_change_mind(question: str, thesis: str, antithesis: str) -> dict:
+    text = _call(_SYS_CHANGE_MIND,
+                 f"Question: {question}\nFOR:\n{thesis}\nAGAINST:\n{antithesis}",
+                 max_tokens=600)
+    s, e = text.find("{"), text.rfind("}") + 1
+    if s != -1 and e > s:
+        try:
+            return json.loads(text[s:e])
+        except Exception:
+            pass
+    return {"for_would_update": [], "against_would_update": []}
+
+
+def get_conviction(thesis: str, antithesis: str) -> dict:
+    text = _call(_SYS_CONVICTION,
+                 f"FOR:\n{thesis}\n\nAGAINST:\n{antithesis}", max_tokens=400)
+    s, e = text.find("{"), text.rfind("}") + 1
+    if s != -1 and e > s:
+        try:
+            return json.loads(text[s:e])
+        except Exception:
+            pass
+    return {}
+
+
+def stream_drill(claim: str, context: str, mode: str) -> Generator[str, None, None]:
+    """Stream a deep-dive on a specific paragraph. mode: challenge|expand|falsify."""
+    systems = {
+        "challenge": _SYS_DRILL_CHALLENGE,
+        "expand":    _SYS_DRILL_EXPAND,
+        "falsify":   _SYS_DRILL_FALSIFY,
+    }
+    sys = systems.get(mode, _SYS_DRILL_CHALLENGE)
+    yield from _stream(sys,
+        f"Debate context: {context[:300]}\n\nThe specific claim to {mode}:\n{claim}")

@@ -16,6 +16,9 @@
       <span class="sidebar-title">History</span>
       <button class="sidebar-clear" id="clearHistoryBtn" type="button">Clear</button>
     </div>
+    <div class="sidebar-search">
+      <input type="text" id="historySearch" placeholder="Search debates…" />
+    </div>
     <div class="sidebar-list" id="historyList">
       <div class="sidebar-empty">No debates yet.</div>
     </div>
@@ -85,9 +88,13 @@
           <div class="debate-q" id="debateQ"></div>
           <div class="debate-btns">
             <button class="secondary small" id="round2Btn" type="button" disabled>Round 2 →</button>
-            <button class="secondary small" id="fallacyBtn" type="button" disabled>Scan fallacies</button>
+            <button class="secondary small" id="commonGroundBtn" type="button" disabled>Common ground</button>
+            <button class="secondary small" id="followUpBtn" type="button" disabled>Follow-up Qs</button>
+            <button class="secondary small" id="changeMindBtn" type="button" disabled>Change my mind</button>
+            <button class="secondary small" id="fallacyBtn" type="button" disabled>Fallacies</button>
+            <button class="secondary small" id="shareBtn" type="button">Share</button>
             <button class="secondary small" id="copyBtn" type="button">Copy</button>
-            <button class="secondary small" id="mdBtn" type="button">Export .md</button>
+            <button class="secondary small" id="mdBtn" type="button">.md</button>
           </div>
         </div>
 
@@ -169,8 +176,63 @@
           </div>
         </div>
 
+        <!-- Confidence calibration -->
+        <div id="confidencePanel" class="analysis-panel hidden">
+          <div class="analysis-header">Did this debate move you?</div>
+          <div class="confidence-row">
+            <span class="conf-label">Before</span>
+            <input type="range" id="confBefore" min="0" max="100" value="50" class="conf-slider" />
+            <span class="conf-val" id="confBeforeVal">50%</span>
+          </div>
+          <div class="confidence-row">
+            <span class="conf-label">After</span>
+            <input type="range" id="confAfter" min="0" max="100" value="50" class="conf-slider" />
+            <span class="conf-val" id="confAfterVal">50%</span>
+          </div>
+          <div class="conf-delta" id="confDelta"></div>
+        </div>
+
+        <!-- Common ground -->
+        <div id="commonGroundPanel" class="analysis-panel hidden">
+          <div class="analysis-header">Common ground — what both sides agree on</div>
+          <div id="commonGroundList" class="analysis-list"></div>
+        </div>
+
+        <!-- Follow-up questions -->
+        <div id="followUpPanel" class="analysis-panel hidden">
+          <div class="analysis-header">Socratic follow-up — what this debate doesn't answer</div>
+          <div id="followUpList" class="analysis-list"></div>
+        </div>
+
+        <!-- What would change your mind -->
+        <div id="changeMindPanel" class="analysis-panel hidden">
+          <div class="analysis-header">What would change each side's mind</div>
+          <div class="change-mind-cols">
+            <div>
+              <div class="change-side for-side-label">For would update if…</div>
+              <div id="forUpdateList" class="analysis-list"></div>
+            </div>
+            <div>
+              <div class="change-side against-side-label">Against would update if…</div>
+              <div id="againstUpdateList" class="analysis-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Drill panel -->
+        <div id="drillPanel" class="drill-panel hidden">
+          <div class="drill-header">
+            <span id="drillMode" class="drill-mode-label"></span>
+            <span id="drillClaim" class="drill-claim-text"></span>
+            <button class="drill-close" id="drillClose" type="button">✕</button>
+          </div>
+          <div id="drillText" class="drill-text"></div>
+          <div class="col-loading hidden" id="drillLoading">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+        </div>
+
         <!-- Fallacies -->
-        <div id="fallacyPanel" class="fallacy-panel hidden">
           <div class="fallacy-header">Logical fallacies detected</div>
           <div class="fallacy-cols">
             <div>
