@@ -1,0 +1,14 @@
+Flask>=3.0.0
+gunicorn>=21.2.0
+
+# Provider 1 (recommended — free, fast): get a free key at console.groq.com
+groq>=0.9.0
+
+# Provider 2 (best quality): needs ANTHROPIC_API_KEY
+anthropic>=0.40.0
+
+# Provider 3 (self-hosted CPU, no API key):
+# Set ENABLE_LOCAL_LLM=1. Use a 7B model for coherent debates.
+--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+llama-cpp-python>=0.3.2
+huggingface_hub>=0.24.0
