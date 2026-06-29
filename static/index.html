@@ -8,136 +8,217 @@
 </head>
 <body>
 
-<header class="hero">
-  <div class="wrap">
-    <nav class="topbar">
-      <div class="brand"><span class="brand-mark">⚔</span><span>ADVERSARY</span></div>
-      <div class="nav-meta" id="status"></div>
-    </nav>
-    <h1>Every answer, cross&#8209;examined.</h1>
-    <p class="lede">
-      AI answers are prosecutions that were never challenged.
-      Adversary applies the principle of <strong>adversarial proceedings</strong>
-      to every question: the strongest case <em>for</em>, the strongest case
-      <em>against</em>, and an honest synthesis neither side could give alone.
-    </p>
-  </div>
-</header>
+<div class="layout">
 
-<main class="wrap">
-
-  <section class="input-panel">
-    <div class="demos" id="demos"></div>
-
-    <div class="question-row">
-      <textarea id="question" rows="2"
-        placeholder="Ask any contested question or state a claim to be challenged…"></textarea>
+  <!-- ── History sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">History</span>
+      <button class="sidebar-clear" id="clearHistoryBtn" type="button">Clear</button>
     </div>
-
-    <div class="actions">
-      <button id="debateBtn" class="primary" type="button">
-        Open the debate <kbd class="kbd">⌘↵</kbd>
-      </button>
-      <button id="challengeBtn" class="secondary" type="button">
-        Challenge my view
-      </button>
-      <button id="clearBtn" class="secondary ghost" type="button">Clear</button>
-      <span id="vstatus" class="vstatus"></span>
+    <div class="sidebar-list" id="historyList">
+      <div class="sidebar-empty">No debates yet.</div>
     </div>
+  </aside>
 
-    <div id="challengePanel" class="challenge-panel hidden">
-      <div class="challenge-label">The strongest case against your view</div>
-      <div id="challengeText" class="challenge-text"></div>
-    </div>
-  </section>
+  <!-- ── Main ── -->
+  <div class="main">
 
-  <section id="debate" class="debate hidden">
-    <div class="debate-header">
-      <div class="debate-q" id="debateQ"></div>
-      <div class="debate-actions">
-        <button class="secondary small" id="copyBtn" type="button">Copy transcript</button>
-        <button class="secondary small" id="mdBtn" type="button">Export .md</button>
-      </div>
-    </div>
-
-    <div class="columns">
-      <div class="col for-col">
-        <div class="col-header for-header">
-          <span class="col-icon">▲</span> Case for
-        </div>
-        <div class="col-body" id="thesisText"></div>
-        <div class="col-loading" id="thesisLoading">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-      </div>
-
-      <div class="col against-col">
-        <div class="col-header against-header">
-          <span class="col-icon">▼</span> Case against
-        </div>
-        <div class="col-body" id="antithesisText"></div>
-        <div class="col-loading hidden" id="antithesisLoading">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="synthesis-block hidden" id="synthesisBlock">
-      <div class="synthesis-header">Honest assessment</div>
-      <div class="synthesis-body" id="synthesisText"></div>
-    </div>
-
-    <div class="verdict-block hidden" id="verdictBlock">
-      <div class="verdict-bars">
-        <div class="bar-row">
-          <span class="bar-label for-label">For</span>
-          <div class="bar-track">
-            <div class="bar-fill for-fill" id="forBar"></div>
+    <header class="hero">
+      <div class="wrap">
+        <nav class="topbar">
+          <div class="brand"><span class="brand-mark">⚔</span><span>ADVERSARY</span></div>
+          <div class="nav-right">
+            <span class="nav-meta" id="status"></span>
           </div>
-          <span class="bar-pct" id="forPct">—</span>
+        </nav>
+        <h1>Every answer,<br>cross&#8209;examined.</h1>
+        <p class="lede">
+          AI answers are prosecutions that were never challenged.
+          Adversary applies <strong>adversarial proceedings</strong> to every
+          question: the strongest case <em>for</em>, the strongest case
+          <em>against</em>, and an honest synthesis neither side could give alone.
+        </p>
+      </div>
+    </header>
+
+    <main class="wrap">
+
+      <!-- ── Input panel ── -->
+      <section class="input-panel">
+
+        <div class="demos" id="demos"></div>
+
+        <div class="persona-row">
+          <span class="persona-label">Lens</span>
+          <div class="persona-pills" id="personaPills"></div>
         </div>
-        <div class="bar-row">
-          <span class="bar-label against-label">Against</span>
-          <div class="bar-track">
-            <div class="bar-fill against-fill" id="againstBar"></div>
+
+        <div class="question-row">
+          <textarea id="question" rows="2"
+            placeholder="Ask any contested question or state a claim to be challenged… (⌘↵ to debate)"></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="debateBtn" class="primary" type="button">Open the debate</button>
+          <button id="challengeBtn" class="secondary" type="button">Challenge my view</button>
+          <button id="steelmanBtn" class="secondary" type="button">Steelman</button>
+          <button id="clearBtn" class="secondary ghost" type="button">Clear</button>
+          <span id="vstatus" class="vstatus"></span>
+        </div>
+
+        <div id="challengePanel" class="side-panel for-side hidden">
+          <div class="side-label">Strongest case against your view</div>
+          <div id="challengeText" class="side-text"></div>
+        </div>
+
+        <div id="steelmanPanel" class="side-panel synth-side hidden">
+          <div class="side-label">Steelman — the best version of the opposing argument</div>
+          <div id="steelmanText" class="side-text"></div>
+        </div>
+      </section>
+
+      <!-- ── Debate ── -->
+      <section id="debate" class="debate hidden">
+
+        <div class="debate-top">
+          <div class="debate-q" id="debateQ"></div>
+          <div class="debate-btns">
+            <button class="secondary small" id="round2Btn" type="button" disabled>Round 2 →</button>
+            <button class="secondary small" id="fallacyBtn" type="button" disabled>Scan fallacies</button>
+            <button class="secondary small" id="copyBtn" type="button">Copy</button>
+            <button class="secondary small" id="mdBtn" type="button">Export .md</button>
           </div>
-          <span class="bar-pct" id="againstPct">—</span>
         </div>
-      </div>
-      <div class="verdict-text" id="verdictText"></div>
-    </div>
-  </section>
 
-  <section class="thesis-section">
-    <div class="thesis-grid">
-      <div>
-        <h4>Why adversarial reasoning works</h4>
-        <p>The legal system discovered this centuries ago: truth is more
-        reliable when every claim must survive a skilled challenge. Science
-        calls it peer review. Philosophy calls it dialectics. We've never applied
-        it to AI — until now.</p>
-      </div>
-      <div>
-        <h4>The problem with regular AI answers</h4>
-        <p>Every AI response is a closing argument with no opposing counsel.
-        The model optimizes for sounding correct, not being correct. There is
-        no mechanism that forces it to confront what it might be wrong about.</p>
-      </div>
-      <div>
-        <h4>What the synthesis gives you</h4>
-        <p>The synthesis isn't a compromise. It's what a genuinely honest
-        expert would say after hearing both sides — including which side has
-        the stronger case and what specific evidence would change the verdict.</p>
-      </div>
-    </div>
-  </section>
-</main>
+        <!-- Round 1 -->
+        <div class="round-label">Round 1</div>
+        <div class="columns">
+          <div class="col for-col">
+            <div class="col-header for-header"><span class="col-icon">▲</span> Case for</div>
+            <div class="claims-row hidden" id="forClaims"></div>
+            <div class="col-body" id="thesisText"></div>
+            <div class="col-loading" id="thesisLoading">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+          </div>
+          <div class="col against-col">
+            <div class="col-header against-header"><span class="col-icon">▼</span> Case against</div>
+            <div class="claims-row hidden" id="againstClaims"></div>
+            <div class="col-body" id="antithesisText"></div>
+            <div class="col-loading hidden" id="antithesisLoading">
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+          </div>
+        </div>
 
-<footer class="wrap">
-  <p>Adversary — adversarial reasoning for every question.
-    The FOR case never represents Adversary's views. Neither does the AGAINST case.
-    Only the synthesis does.</p>
-</footer>
+        <div class="synthesis-block hidden" id="synthesisBlock">
+          <div class="synthesis-header">Honest assessment</div>
+          <div class="synthesis-body" id="synthesisText"></div>
+        </div>
+
+        <div class="verdict-block hidden" id="verdictBlock">
+          <div class="verdict-inner">
+            <div class="bar-row">
+              <span class="bar-label for-label">For</span>
+              <div class="bar-track"><div class="bar-fill for-fill" id="forBar"></div></div>
+              <span class="bar-pct" id="forPct">—</span>
+            </div>
+            <div class="bar-row">
+              <span class="bar-label against-label">Against</span>
+              <div class="bar-track"><div class="bar-fill against-fill" id="againstBar"></div></div>
+              <span class="bar-pct" id="againstPct">—</span>
+            </div>
+          </div>
+          <div class="verdict-text" id="verdictText"></div>
+        </div>
+
+        <!-- Round 2 -->
+        <div id="round2Section" class="hidden">
+          <div class="round-label">Round 2 — Rebuttal</div>
+          <div class="columns">
+            <div class="col for-col">
+              <div class="col-header for-header"><span class="col-icon">↩</span> For — rebuttal</div>
+              <div class="col-body" id="rebuttalForText"></div>
+              <div class="col-loading hidden" id="rebuttalForLoading">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              </div>
+            </div>
+            <div class="col against-col">
+              <div class="col-header against-header"><span class="col-icon">↩</span> Against — counter</div>
+              <div class="col-body" id="rebuttalAgainstText"></div>
+              <div class="col-loading hidden" id="rebuttalAgainstLoading">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              </div>
+            </div>
+          </div>
+          <div class="verdict-block hidden" id="rebuttalVerdictBlock">
+            <div class="verdict-inner">
+              <div class="bar-row">
+                <span class="bar-label for-label">For</span>
+                <div class="bar-track"><div class="bar-fill for-fill" id="rb_forBar"></div></div>
+                <span class="bar-pct" id="rb_forPct">—</span>
+              </div>
+              <div class="bar-row">
+                <span class="bar-label against-label">Against</span>
+                <div class="bar-track"><div class="bar-fill against-fill" id="rb_againstBar"></div></div>
+                <span class="bar-pct" id="rb_againstPct">—</span>
+              </div>
+            </div>
+            <div class="verdict-text" id="rb_verdictText"></div>
+          </div>
+        </div>
+
+        <!-- Fallacies -->
+        <div id="fallacyPanel" class="fallacy-panel hidden">
+          <div class="fallacy-header">Logical fallacies detected</div>
+          <div class="fallacy-cols">
+            <div>
+              <div class="fallacy-side for-side-label">Case for</div>
+              <div id="forFallacies" class="fallacy-list"></div>
+            </div>
+            <div>
+              <div class="fallacy-side against-side-label">Case against</div>
+              <div id="againstFallacies" class="fallacy-list"></div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── Why it works ── -->
+      <section class="thesis-section">
+        <div class="thesis-grid">
+          <div>
+            <h4>Why adversarial reasoning works</h4>
+            <p>The legal system discovered this centuries ago: truth is more reliable when every
+            claim must survive a skilled challenge. Science calls it peer review. Philosophy calls
+            it dialectics. We've never applied it to AI — until now.</p>
+          </div>
+          <div>
+            <h4>The problem with regular AI answers</h4>
+            <p>Every AI response is a closing argument with no opposing counsel. The model
+            optimizes for sounding correct, not being correct. Nothing forces it to confront
+            what it might be wrong about.</p>
+          </div>
+          <div>
+            <h4>Use the lenses</h4>
+            <p>The same question looks different through an economist's eyes vs. a philosopher's.
+            Switch lenses to see which arguments survive across worldviews — those are the ones
+            worth taking seriously.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="wrap">
+      <p>Adversary — the FOR case never represents Adversary's views. Neither does AGAINST.
+         Only the honest assessment does.</p>
+    </footer>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
 
 <script src="app.js"></script>
 </body>
